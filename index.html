@@ -8,12 +8,14 @@
     <style>
         /* ===== ОБЩИЙ СТИЛЬ ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { overflow-x: hidden; }
         body {
             font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
             background: #f4f7fc;
             color: #1e2a3a;
-            display: flex;
             min-height: 100vh;
+            overflow-x: hidden;
+            width: 100%;
         }
 
         /* ===== БОКОВОЕ МЕНЮ ===== */
@@ -28,7 +30,7 @@
             height: 100vh;
             overflow-y: auto;
             box-shadow: 2px 0 12px rgba(0,0,0,0.1);
-            z-index: 100;
+            z-index: 200;
         }
         .sidebar h2 {
             text-align: center;
@@ -79,7 +81,8 @@
         .main {
             margin-left: 270px;
             padding: 30px 40px 50px;
-            width: 100%;
+            width: calc(100% - 270px);
+            max-width: 100%;
             background: #f8f9fc;
         }
         .page-header {
@@ -344,16 +347,6 @@
             margin: 2rem 0;
         }
 
-        /* Адаптив */
-        @media (max-width: 768px) {
-            .sidebar { width: 100%; height: auto; position: relative; }
-            .main { margin-left: 0; padding: 20px; }
-            .theory-content .container { padding: 20px 16px; }
-            .theory-content table { font-size: 0.85rem; }
-            .theory-content th, .theory-content td { padding: 6px 10px; }
-            .theory-content h1 { font-size: 1.6rem; }
-        }
-
         /* ===== ЭКРАН АВТОРИЗАЦИИ ===== */
         #authOverlay {
             position: fixed;
@@ -368,10 +361,53 @@
         #authOverlay.hidden { display: none; }
         #appRoot.hidden { display: none; }
         #appRoot {
-            display: flex;
+            display: block;
             width: 100%;
             min-width: 0;
         }
+
+        /* ===== МОБИЛЬНАЯ ВЕРХНЯЯ ПАНЕЛЬ И ЗАТЕМНЕНИЕ (скрыты на десктопе) ===== */
+        .mobile-topbar {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: #0b2b4a;
+            color: #fff;
+            padding: 0 16px;
+            z-index: 210;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        }
+        .mobile-topbar .burger {
+            background: transparent;
+            border: 1px solid #2a4a6a;
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .mobile-topbar .brand {
+            font-size: 1rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 150;
+        }
+        .sidebar-overlay.open { display: block; }
         .auth-box {
             background: #fff;
             width: 100%;
@@ -545,6 +581,47 @@
             .home-grid { grid-template-columns: 1fr; }
             .home-card.home-card--access { position: static; }
         }
+
+        /* ===================================================================
+           АДАПТИВ ДЛЯ МОБИЛЬНЫХ (блок специально в самом конце таблицы стилей,
+           чтобы гарантированно перебивать базовые правила выше при равном
+           приоритете селекторов)
+           =================================================================== */
+        @media (max-width: 900px) {
+            .mobile-topbar { display: flex; }
+
+            .sidebar {
+                width: 82%;
+                max-width: 300px;
+                transform: translateX(-100%);
+                transition: transform 0.25s ease;
+            }
+            .sidebar.open { transform: translateX(0); }
+
+            .main {
+                margin-left: 0;
+                padding: 20px 16px 50px;
+                padding-top: 76px;
+                width: 100%;
+                max-width: 100%;
+            }
+            .theory-content, .theory-content * { overflow-wrap: break-word; word-break: break-word; }
+            .theory-content .container { padding: 20px 16px; }
+            .theory-content h1 { font-size: 1.6rem; }
+
+            /* Таблицы шире экрана скроллятся по горизонтали, а не ломают верстку */
+            .theory-content table {
+                display: block;
+                width: max-content;
+                max-width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                font-size: 0.85rem;
+            }
+            .theory-content th, .theory-content td { padding: 6px 10px; white-space: nowrap; }
+            .theory-content .practice-options { padding: 12px 14px 12px 30px; }
+            .home-card { padding: 22px 20px; }
+        }
     </style>
 </head>
 <body>
@@ -581,6 +658,13 @@
 
 
     <div id="appRoot" class="hidden">
+
+    <!-- ============ МОБИЛЬНАЯ ВЕРХНЯЯ ПАНЕЛЬ ============ -->
+    <div class="mobile-topbar">
+        <button type="button" class="burger" id="mobileMenuToggle" aria-label="Открыть меню">☰</button>
+        <span class="brand">📘 ЕГЭ Русский</span>
+    </div>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <!-- ============ БОКОВОЕ МЕНЮ ============ -->
     <nav class="sidebar">
@@ -666,7 +750,7 @@
                     <h1>Добро пожаловать 👋</h1>
                     <p class="subhead">Вся теория ЕГЭ по русскому языку — в одном месте</p>
 
-                    <p>Этот сайт — сборник теории и практики по всем 27 заданиям ЕГЭ по русскому языку, актуальный для экзамена 2026 года. Материал разобран по каждому заданию отдельно: формулировка, алгоритм разбора, ключевые правила, таблицы и разборы исключений — без «воды», только то, что реально нужно для решения.</p>
+                    <p>Этот сайт — сборник теории и практики по всем 27 заданиям ЕГЭ по русскому языку, актуальный для экзамена 2027 года. Материал разобран по каждому заданию отдельно: формулировка, алгоритм разбора, ключевые правила, таблицы и разборы исключений — без «воды», только то, что реально нужно для решения.</p>
 
                     <h2>Как пользоваться сайтом</h2>
                     <p>Слева — меню со всеми заданиями. Кликните на нужный номер, и в основной части откроется теория именно по этому заданию. Переключаться между заданиями можно в любой момент — весь материал остаётся под рукой.</p>
@@ -675,7 +759,7 @@
                     <div class="algorithm">
                         <ul style="padding-left: 1.4rem; margin: 0;">
                             <li>📚 Вся теория по 27 заданиям — сжато, структурировано и по делу</li>
-                            <li>✅ Актуально для ЕГЭ 2026 года</li>
+                            <li>✅ Актуально для ЕГЭ 2027 года</li>
                             <li>📱 Удобно открывать с телефона, планшета или компьютера</li>
                             <li>📸 Теорию по любому заданию можно сохранить как картинку одной кнопкой — удобно повторять офлайн</li>
                         </ul>
@@ -27454,9 +27538,40 @@ _____________________________________</p>
                     e.preventDefault();
                     const target = this.getAttribute('data-target');
                     switchTo(target);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    const mainEl = document.querySelector('.main');
+                    if (mainEl) mainEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    if (typeof closeMobileSidebar === 'function') closeMobileSidebar();
                 });
             });
+
+            // ==========================================================
+            // Мобильное off-canvas меню (гамбургер + затемнение фона)
+            // ==========================================================
+            const sidebarEl = document.querySelector('.sidebar');
+            const mobileToggleBtn = document.getElementById('mobileMenuToggle');
+            const sidebarOverlayEl = document.getElementById('sidebarOverlay');
+
+            window.openMobileSidebar = function() {
+                sidebarEl.classList.add('open');
+                sidebarOverlayEl.classList.add('open');
+            };
+            window.closeMobileSidebar = function() {
+                sidebarEl.classList.remove('open');
+                sidebarOverlayEl.classList.remove('open');
+            };
+
+            if (mobileToggleBtn) {
+                mobileToggleBtn.addEventListener('click', function() {
+                    if (sidebarEl.classList.contains('open')) {
+                        closeMobileSidebar();
+                    } else {
+                        openMobileSidebar();
+                    }
+                });
+            }
+            if (sidebarOverlayEl) {
+                sidebarOverlayEl.addEventListener('click', closeMobileSidebar);
+            }
 
             if (window.location.hash) {
                 const hash = window.location.hash.replace('#', '');
