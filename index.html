@@ -146,6 +146,8 @@
 
     /* ===== БОКОВОЕ МЕНЮ (СВЕТЛОЕ, С ГРУППИРОВКОЙ И ПОИСКОМ) ===== */
     .sidebar {
+        display: flex;
+        flex-direction: column;
         width: 300px;
         background: var(--bg-surface);
         color: var(--text-main);
@@ -201,7 +203,7 @@
         box-shadow: 0 0 0 3px var(--focus-ring);
     }
 
-    .menu-list { list-style: none; padding: 6px 0; }
+    .menu-list { list-style: none; padding: 6px 0; flex: 1 1 auto; }
     .menu-list li { padding: 1px 10px; }
 
     /* Заголовки групп заданий ЕГЭ в меню */
@@ -1487,9 +1489,28 @@
     .u-108 { margin: 6px 0 0 0; padding: 8px 12px; background: var(--i-bg-f8f9fc); border-radius: 6px; }
     .u-109 { font-size: 1.2rem; font-weight: 700; color: var(--i-text-b45a1c); margin: 6px 0 0 0; }
 }
+
+/* ===== Встроенный браузерный редактор ===== */
+.sidebar-editor-footer{flex:0 0 auto;margin-top:auto;padding:12px 14px 8px;border-top:1px solid var(--border-light);display:flex;justify-content:flex-end}
+.ee-lock{width:34px;height:34px;border:1px solid var(--border-light);border-radius:10px;background:var(--bg-subtle);color:var(--text-muted);opacity:.72;cursor:pointer;transition:.15s}
+.ee-lock:hover{opacity:1;background:var(--accent-soft);border-color:var(--accent-border);color:var(--accent-primary)}
+.ee-overlay{position:fixed;inset:0;z-index:100002;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);backdrop-filter:blur(3px)}
+.ee-login{width:min(360px,calc(100% - 32px));padding:22px;border:1px solid var(--border-strong);border-radius:14px;background:var(--bg-surface);color:var(--text-main);box-shadow:0 16px 50px #0005}
+.ee-login h3{margin:0 0 14px}.ee-login input{box-sizing:border-box;width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:8px;background:var(--bg-page);color:var(--text-main);font:inherit}.ee-error{min-height:1.4em;color:var(--danger-text);font-size:.85rem;margin:8px 0}
+.ee-actions{display:flex;justify-content:flex-end;gap:8px}
+.ee-actions button{padding:8px 15px;border:1px solid var(--border-strong);border-radius:8px;background:var(--bg-subtle);color:var(--text-secondary);font:600 13px/1.3 system-ui,sans-serif;cursor:pointer;transition:.15s}
+.ee-actions button:hover{background:var(--bg-hover);border-color:var(--accent-border);color:var(--accent-primary)}
+.ee-actions button.ee-primary{background:var(--accent-primary);border-color:var(--accent-primary);color:#fff}
+.ee-actions button.ee-primary:hover{background:var(--accent-primary-hover);border-color:var(--accent-primary-hover);color:#fff}
+.ee-panel{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:99999;width:min(1100px,calc(100% - 24px));box-sizing:border-box;padding:9px;display:flex;flex-direction:column;gap:7px;border:1px solid var(--border-strong);border-radius:13px;background:var(--bg-surface);color:var(--text-main);box-shadow:0 10px 36px #0004;font:13px/1.4 system-ui,sans-serif}
+.ee-row{display:flex;align-items:center;flex-wrap:wrap;gap:6px}.ee-spacer{flex:1}.ee-panel button,.ee-panel select{padding:6px 9px;border:1px solid var(--border-strong);border-radius:7px;background:var(--bg-page);color:var(--text-main);font:inherit;cursor:pointer}.ee-panel button:hover{border-color:var(--accent-primary)}.ee-panel .ee-primary{background:var(--accent-primary);color:white;border-color:var(--accent-primary)}.ee-hint{font-size:11px;color:var(--text-muted)}.ee-panel.ee-min .ee-tools,.ee-panel.ee-min .ee-hint{display:none}
+.ee-toast{position:fixed;left:50%;bottom:165px;transform:translateX(-50%);z-index:100003;max-width:calc(100% - 32px);padding:10px 15px;border-radius:9px;background:var(--text-main);color:var(--bg-surface);font:600 13px system-ui,sans-serif}
+body.ee-editing .theory-content:not(#main) .container[contenteditable=true]{outline:2px dashed var(--accent-border);outline-offset:5px}body.ee-has-panel .main{padding-bottom:190px}
+@media(max-width:700px){.ee-panel{max-height:55vh;overflow:auto}.ee-toast{bottom:220px}}
+
 </style>
-</head>
-<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script></head>
+<body class="">
 
     <div id="appRoot">
 
@@ -1497,21 +1518,220 @@
     <div class="mobile-topbar">
         <button type="button" class="burger" id="mobileMenuToggle" aria-label="Открыть меню">☰</button>
         <span class="brand">📘 ЕГЭ Русский</span>
-        <button type="button" class="mobile-theme-btn" id="mobileThemeBtn" aria-label="Сменить тему">🌓</button>
+        <button type="button" class="mobile-theme-btn" id="mobileThemeBtn" aria-label="Сменить тему">☀️</button>
     </div>
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <!-- ============ БОКОВОЕ МЕНЮ ============ -->
     <nav class="sidebar">
         <h2>📘 <span>ЕГЭ</span> Русский</h2>
-        <ul class="menu-list" id="menuList"></ul>
+        <ul class="menu-list" id="menuList"><li><a class="" data-target="main">🏠 Главная (Все темы)</a></li><li class="menu-group-header">Работа с микротекстом (1–3)</li>
+                            <li class="menu-row" data-search="задание 1 средства связи предложений в тексте">
+                                <a class="menu-main-link" data-target="zadanie1" title="Задание 1. Средства связи предложений в тексте">
+                                    <span class="menu-main-title">Задание 1</span>
+                                    <span class="menu-main-sub">Средства связи предложений в тексте</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie1-practice" title="Практика к заданию 1">✍️ Прак.</a>
+                            </li>
+                            <li class="menu-row" data-search="задание 2 определение лексического значения слова">
+                                <a class="menu-main-link" data-target="zadanie2" title="Задание 2. Определение лексического значения слова">
+                                    <span class="menu-main-title">Задание 2</span>
+                                    <span class="menu-main-sub">Определение лексического значения слова</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie2-practice" title="Практика к заданию 2">✍️ Прак.</a>
+                            </li>
+                            <li class="menu-row" data-search="задание 3 стилистический анализ текстов">
+                                <a class="menu-main-link" data-target="zadanie3" title="Задание 3. Стилистический анализ текстов">
+                                    <span class="menu-main-title">Задание 3</span>
+                                    <span class="menu-main-sub">Стилистический анализ текстов</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie3-practice" title="Практика к заданию 3">✍️ Прак.</a>
+                            </li><li class="menu-group-header">Языковые нормы (4–8)</li>
+                            <li class="menu-row" data-search="задание 4 орфоэпические нормы (постановка ударения)">
+                                <a class="menu-main-link" data-target="zadanie4" title="Задание 4. Орфоэпические нормы (постановка ударения)">
+                                    <span class="menu-main-title">Задание 4</span>
+                                    <span class="menu-main-sub">Орфоэпические нормы (постановка ударения)</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie4-practice" title="Практика к заданию 4">✍️ Прак.</a>
+                            </li>
+                            <li class="menu-row" data-search="задание 5 употребление паронимов">
+                                <a class="menu-main-link" data-target="zadanie5" title="Задание 5. Употребление паронимов">
+                                    <span class="menu-main-title">Задание 5</span>
+                                    <span class="menu-main-sub">Употребление паронимов</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie5-practice" title="Практика к заданию 5">✍️ Прак.</a>
+                            </li>
+                            <li class="menu-row" data-search="задание 6 лексические нормы">
+                                <a class="menu-main-link" data-target="zadanie6" title="Задание 6. Лексические нормы">
+                                    <span class="menu-main-title">Задание 6</span>
+                                    <span class="menu-main-sub">Лексические нормы</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie6-practice" title="Практика к заданию 6">✍️ Прак.</a>
+                            </li>
+                            <li class="menu-row" data-search="задание 7 морфологические нормы (образование форм слова)">
+                                <a class="menu-main-link" data-target="zadanie7" title="Задание 7. Морфологические нормы (образование форм слова)">
+                                    <span class="menu-main-title">Задание 7</span>
+                                    <span class="menu-main-sub">Морфологические нормы (образование форм слова)</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie7-practice" title="Практика к заданию 7">✍️ Прак.</a>
+                            </li>
+                            <li class="menu-row" data-search="задание 8 грамматические нормы (синтаксические ошибки)">
+                                <a class="menu-main-link" data-target="zadanie8" title="Задание 8. Грамматические нормы (синтаксические ошибки)">
+                                    <span class="menu-main-title">Задание 8</span>
+                                    <span class="menu-main-sub">Грамматические нормы (синтаксические ошибки)</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie8-practice" title="Практика к заданию 8">✍️ Прак.</a>
+                            </li><li class="menu-group-header">Орфография (9–15)</li>
+                            <li class="menu-row" data-search="задание 9 правописание корней">
+                                <a class="menu-main-link" data-target="zadanie9" title="Задание 9. Правописание корней">
+                                    <span class="menu-main-title">Задание 9</span>
+                                    <span class="menu-main-sub">Правописание корней</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie9-practice" title="Практика к заданию 9">✍️ Прак.</a>
+                            </li>
+                            <li class="menu-row" data-search="задание 10 правописание приставок">
+                                <a class="menu-main-link" data-target="zadanie10" title="Задание 10. Правописание приставок">
+                                    <span class="menu-main-title">Задание 10</span>
+                                    <span class="menu-main-sub">Правописание приставок</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie10-practice" title="Практика к заданию 10">✍️ Прак.</a>
+                            </li>
+                            <li class="menu-row" data-search="задание 11 правописание суффиксов (кроме -н-/-нн-)">
+                                <a class="menu-main-link" data-target="zadanie11" title="Задание 11. Правописание суффиксов (кроме -Н-/-НН-)">
+                                    <span class="menu-main-title">Задание 11</span>
+                                    <span class="menu-main-sub">Правописание суффиксов (кроме -Н-/-НН-)</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie11-practice" title="Практика к заданию 11">✍️ Прак.</a>
+                            </li>
+                            <li class="menu-row" data-search="задание 12 правописание личных окончаний глаголов и суффиксов причастий">
+                                <a class="menu-main-link" data-target="zadanie12" title="Задание 12. Правописание личных окончаний глаголов и суффиксов причастий">
+                                    <span class="menu-main-title">Задание 12</span>
+                                    <span class="menu-main-sub">Правописание личных окончаний глаголов и суффиксов причастий</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie12-practice" title="Практика к заданию 12">✍️ Прак.</a>
+                            </li>
+                            <li class="menu-row" data-search="задание 13 правописание не и ни">
+                                <a class="menu-main-link" data-target="zadanie13" title="Задание 13. Правописание НЕ и НИ">
+                                    <span class="menu-main-title">Задание 13</span>
+                                    <span class="menu-main-sub">Правописание НЕ и НИ</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie13-practice" title="Практика к заданию 13">✍️ Прак.</a>
+                            </li>
+                            <li class="menu-row" data-search="задание 14 слитное, раздельное, дефисное написание слов">
+                                <a class="menu-main-link" data-target="zadanie14" title="Задание 14. Слитное, раздельное, дефисное написание слов">
+                                    <span class="menu-main-title">Задание 14</span>
+                                    <span class="menu-main-sub">Слитное, раздельное, дефисное написание слов</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie14-practice" title="Практика к заданию 14">✍️ Прак.</a>
+                            </li>
+                            <li class="menu-row" data-search="задание 15 правописание -н- и -нн- в суффиксах">
+                                <a class="menu-main-link" data-target="zadanie15" title="Задание 15. Правописание -Н- и -НН- в суффиксах">
+                                    <span class="menu-main-title">Задание 15</span>
+                                    <span class="menu-main-sub">Правописание -Н- и -НН- в суффиксах</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie15-practice" title="Практика к заданию 15">✍️ Прак.</a>
+                            </li><li class="menu-group-header">Пунктуация (16–21)</li>
+                            <li class="menu-row" data-search="задание 16 пунктуация в ссп и в предложении с однородными членами">
+                                <a class="menu-main-link" data-target="zadanie16" title="Задание 16. Пунктуация в ССП и в предложении с однородными членами">
+                                    <span class="menu-main-title">Задание 16</span>
+                                    <span class="menu-main-sub">Пунктуация в ССП и в предложении с однородными членами</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie16-practice" title="Практика к заданию 16">✍️ Прак.</a>
+                            </li>
+                            <li class="menu-row" data-search="задание 17 знаки препинания в предложениях с обособленными членами">
+                                <a class="menu-main-link" data-target="zadanie17" title="Задание 17. Знаки препинания в предложениях с обособленными членами">
+                                    <span class="menu-main-title">Задание 17</span>
+                                    <span class="menu-main-sub">Знаки препинания в предложениях с обособленными членами</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie17-practice" title="Практика к заданию 17">✍️ Прак.</a>
+                            </li>
+                            <li class="menu-row" data-search="задание 18 знаки препинания при словах и конструкциях, не связанных с членами предложения">
+                                <a class="menu-main-link" data-target="zadanie18" title="Задание 18. Знаки препинания при словах и конструкциях, не связанных с членами предложения">
+                                    <span class="menu-main-title">Задание 18</span>
+                                    <span class="menu-main-sub">Знаки препинания при словах и конструкциях, не связанных с членами предложения</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie18-practice" title="Практика к заданию 18">✍️ Прак.</a>
+                            </li>
+                            <li class="menu-row" data-search="задание 19 знаки препинания в сложноподчинённом предложении (спп)">
+                                <a class="menu-main-link" data-target="zadanie19" title="Задание 19. Знаки препинания в сложноподчинённом предложении (СПП)">
+                                    <span class="menu-main-title">Задание 19</span>
+                                    <span class="menu-main-sub">Знаки препинания в сложноподчинённом предложении (СПП)</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie19-practice" title="Практика к заданию 19">✍️ Прак.</a>
+                            </li>
+                            <li class="menu-row" data-search="задание 20 запятые в сложных предложениях с сочинительной и подчинительной связью">
+                                <a class="menu-main-link" data-target="zadanie20" title="Задание 20. Запятые в сложных предложениях с сочинительной и подчинительной связью">
+                                    <span class="menu-main-title">Задание 20</span>
+                                    <span class="menu-main-sub">Запятые в сложных предложениях с сочинительной и подчинительной связью</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie20-practice" title="Практика к заданию 20">✍️ Прак.</a>
+                            </li>
+                            <li class="menu-row" data-search="задание 21 пунктуационный анализ">
+                                <a class="menu-main-link" data-target="zadanie21" title="Задание 21. Пунктуационный анализ">
+                                    <span class="menu-main-title">Задание 21</span>
+                                    <span class="menu-main-sub">Пунктуационный анализ</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie21-practice" title="Практика к заданию 21">✍️ Прак.</a>
+                            </li><li class="menu-group-header">Анализ текста (22–26)</li>
+                            <li class="menu-row" data-search="задание 22 средства выразительности">
+                                <a class="menu-main-link active" data-target="zadanie22" title="Задание 22. Средства выразительности">
+                                    <span class="menu-main-title">Задание 22</span>
+                                    <span class="menu-main-sub">Средства выразительности</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie22-practice" title="Практика к заданию 22">✍️ Прак.</a>
+                            </li>
+                            <li class="menu-row" data-search="задание 23 смысловая и композиционная целостность текста">
+                                <a class="menu-main-link" data-target="zadanie23" title="Задание 23. Смысловая и композиционная целостность текста">
+                                    <span class="menu-main-title">Задание 23</span>
+                                    <span class="menu-main-sub">Смысловая и композиционная целостность текста</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie23-practice" title="Практика к заданию 23">✍️ Прак.</a>
+                            </li>
+                            <li class="menu-row" data-search="задание 24 функционально-смысловые типы речи">
+                                <a class="menu-main-link" data-target="zadanie24" title="Задание 24. Функционально-смысловые типы речи">
+                                    <span class="menu-main-title">Задание 24</span>
+                                    <span class="menu-main-sub">Функционально-смысловые типы речи</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie24-practice" title="Практика к заданию 24">✍️ Прак.</a>
+                            </li>
+                            <li class="menu-row" data-search="задание 25 лексическое значение слова (синонимы, антонимы, фразеологизмы)">
+                                <a class="menu-main-link" data-target="zadanie25" title="Задание 25. Лексическое значение слова (синонимы, антонимы, фразеологизмы)">
+                                    <span class="menu-main-title">Задание 25</span>
+                                    <span class="menu-main-sub">Лексическое значение слова (синонимы, антонимы, фразеологизмы)</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie25-practice" title="Практика к заданию 25">✍️ Прак.</a>
+                            </li>
+                            <li class="menu-row" data-search="задание 26 логико-смысловые отношения между предложениями">
+                                <a class="menu-main-link" data-target="zadanie26" title="Задание 26. Логико-смысловые отношения между предложениями">
+                                    <span class="menu-main-title">Задание 26</span>
+                                    <span class="menu-main-sub">Логико-смысловые отношения между предложениями</span>
+                                </a>
+                                <a class="menu-prac-btn" data-target="zadanie26-practice" title="Практика к заданию 26">✍️ Прак.</a>
+                            </li><li class="menu-group-header">Сочинение ЕГЭ (27)</li>
+                            <li class="menu-row" data-search="задание 27 сочинение критерии">
+                                <a class="menu-main-link" data-target="zadanie27">
+                                    <span class="menu-main-title">Задание 27 (Критерии)</span>
+                                    <span class="menu-main-sub">Критерии оценивания К1–К10</span>
+                                </a>
+                            </li>
+                            <li class="menu-row" data-search="задание 27 структура сочинения">
+                                <a class="menu-main-link" data-target="zadanie27-structure">
+                                    <span class="menu-main-title">└ Структура сочинения</span>
+                                </a>
+                            </li>
+                            <li class="menu-row" data-search="задание 27 клише шаблоны">
+                                <a class="menu-main-link" data-target="zadanie27-cliches">
+                                    <span class="menu-main-title">└ Клише и шаблоны</span>
+                                </a>
+                            </li></ul>
+        <div class="sidebar-editor-footer" id="sidebarEditorFooter"></div>
     </nav>
 
     <!-- ============ ОСНОВНОЙ БЛОК ============ -->
     <div class="main">
         <div class="page-header">
             <div class="theme-switcher" id="themeSwitcher" role="group" aria-label="Тема оформления">
-                <button type="button" class="theme-btn" data-theme-set="light" title="Светлая тема">☀️<span class="theme-label"> Светлая</span></button>
+                <button type="button" class="theme-btn active" data-theme-set="light" title="Светлая тема">☀️<span class="theme-label"> Светлая</span></button>
                 <button type="button" class="theme-btn" data-theme-set="sepia" title="Сепия">📜<span class="theme-label"> Сепия</span></button>
                 <button type="button" class="theme-btn" data-theme-set="dark" title="Тёмная тема">🌙<span class="theme-label"> Тёмная</span></button>
             </div>
@@ -1519,7 +1739,282 @@
 
         <!-- ===== ГЛАВНАЯ ===== -->
         <div id="main" class="theory-content active">
-        </div>
+                    <div class="container">
+                        <div class="dashboard-hero">
+                            <h1>📘 Навигатор по курсу ЕГЭ (Задания 1–27)</h1>
+                            <p style="margin:0; color:var(--text-secondary);">Выберите нужное задание, чтобы открыть конспект теории или перейти к разбору реальных заданий ФИПИ в режиме урока.</p>
+                        </div><div class="dashboard-section"><h2 class="dashboard-section-title">Работа с микротекстом (1–3)</h2><div class="dashboard-grid">
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 1</span>
+                                        <div class="dash-card-title">Средства связи предложений в тексте</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie1">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie1-practice">✍️ Практика</button>
+                                    </div>
+                                </div>
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 2</span>
+                                        <div class="dash-card-title">Определение лексического значения слова</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie2">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie2-practice">✍️ Практика</button>
+                                    </div>
+                                </div>
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 3</span>
+                                        <div class="dash-card-title">Стилистический анализ текстов</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie3">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie3-practice">✍️ Практика</button>
+                                    </div>
+                                </div></div></div><div class="dashboard-section"><h2 class="dashboard-section-title">Языковые нормы (4–8)</h2><div class="dashboard-grid">
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 4</span>
+                                        <div class="dash-card-title">Орфоэпические нормы (постановка ударения)</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie4">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie4-practice">✍️ Практика</button>
+                                    </div>
+                                </div>
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 5</span>
+                                        <div class="dash-card-title">Употребление паронимов</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie5">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie5-practice">✍️ Практика</button>
+                                    </div>
+                                </div>
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 6</span>
+                                        <div class="dash-card-title">Лексические нормы</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie6">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie6-practice">✍️ Практика</button>
+                                    </div>
+                                </div>
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 7</span>
+                                        <div class="dash-card-title">Морфологические нормы (образование форм слова)</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie7">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie7-practice">✍️ Практика</button>
+                                    </div>
+                                </div>
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 8</span>
+                                        <div class="dash-card-title">Грамматические нормы (синтаксические ошибки)</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie8">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie8-practice">✍️ Практика</button>
+                                    </div>
+                                </div></div></div><div class="dashboard-section"><h2 class="dashboard-section-title">Орфография (9–15)</h2><div class="dashboard-grid">
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 9</span>
+                                        <div class="dash-card-title">Правописание корней</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie9">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie9-practice">✍️ Практика</button>
+                                    </div>
+                                </div>
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 10</span>
+                                        <div class="dash-card-title">Правописание приставок</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie10">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie10-practice">✍️ Практика</button>
+                                    </div>
+                                </div>
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 11</span>
+                                        <div class="dash-card-title">Правописание суффиксов (кроме -Н-/-НН-)</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie11">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie11-practice">✍️ Практика</button>
+                                    </div>
+                                </div>
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 12</span>
+                                        <div class="dash-card-title">Правописание личных окончаний глаголов и суффиксов причастий</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie12">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie12-practice">✍️ Практика</button>
+                                    </div>
+                                </div>
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 13</span>
+                                        <div class="dash-card-title">Правописание НЕ и НИ</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie13">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie13-practice">✍️ Практика</button>
+                                    </div>
+                                </div>
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 14</span>
+                                        <div class="dash-card-title">Слитное, раздельное, дефисное написание слов</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie14">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie14-practice">✍️ Практика</button>
+                                    </div>
+                                </div>
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 15</span>
+                                        <div class="dash-card-title">Правописание -Н- и -НН- в суффиксах</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie15">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie15-practice">✍️ Практика</button>
+                                    </div>
+                                </div></div></div><div class="dashboard-section"><h2 class="dashboard-section-title">Пунктуация (16–21)</h2><div class="dashboard-grid">
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 16</span>
+                                        <div class="dash-card-title">Пунктуация в ССП и в предложении с однородными членами</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie16">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie16-practice">✍️ Практика</button>
+                                    </div>
+                                </div>
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 17</span>
+                                        <div class="dash-card-title">Знаки препинания в предложениях с обособленными членами</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie17">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie17-practice">✍️ Практика</button>
+                                    </div>
+                                </div>
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 18</span>
+                                        <div class="dash-card-title">Знаки препинания при словах и конструкциях, не связанных с членами предложения</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie18">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie18-practice">✍️ Практика</button>
+                                    </div>
+                                </div>
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 19</span>
+                                        <div class="dash-card-title">Знаки препинания в сложноподчинённом предложении (СПП)</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie19">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie19-practice">✍️ Практика</button>
+                                    </div>
+                                </div>
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 20</span>
+                                        <div class="dash-card-title">Запятые в сложных предложениях с сочинительной и подчинительной связью</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie20">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie20-practice">✍️ Практика</button>
+                                    </div>
+                                </div>
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 21</span>
+                                        <div class="dash-card-title">Пунктуационный анализ</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie21">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie21-practice">✍️ Практика</button>
+                                    </div>
+                                </div></div></div><div class="dashboard-section"><h2 class="dashboard-section-title">Анализ текста (22–26)</h2><div class="dashboard-grid">
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 22</span>
+                                        <div class="dash-card-title">Средства выразительности</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie22">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie22-practice">✍️ Практика</button>
+                                    </div>
+                                </div>
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 23</span>
+                                        <div class="dash-card-title">Смысловая и композиционная целостность текста</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie23">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie23-practice">✍️ Практика</button>
+                                    </div>
+                                </div>
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 24</span>
+                                        <div class="dash-card-title">Функционально-смысловые типы речи</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie24">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie24-practice">✍️ Практика</button>
+                                    </div>
+                                </div>
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 25</span>
+                                        <div class="dash-card-title">Лексическое значение слова (синонимы, антонимы, фразеологизмы)</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie25">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie25-practice">✍️ Практика</button>
+                                    </div>
+                                </div>
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 26</span>
+                                        <div class="dash-card-title">Логико-смысловые отношения между предложениями</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie26">📖 Теория</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie26-practice">✍️ Практика</button>
+                                    </div>
+                                </div></div></div><div class="dashboard-section"><h2 class="dashboard-section-title">Сочинение ЕГЭ (27)</h2><div class="dashboard-grid">
+                                <div class="dash-card">
+                                    <div>
+                                        <span class="dash-card-num">Задание 27</span>
+                                        <div class="dash-card-title">Сочинение ЕГЭ: критерии, структура и готовые клише</div>
+                                    </div>
+                                    <div class="dash-card-actions">
+                                        <button type="button" class="dash-btn theory" data-goto="zadanie27">📋 Критерии</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie27-structure">🏗 Структура</button>
+                                        <button type="button" class="dash-btn" data-goto="zadanie27-cliches">💬 Клише</button>
+                                    </div>
+                                </div></div></div></div></div>
 
         <div id="zadanie1" class="theory-content">
     <div class="container">
@@ -1527,7 +2022,7 @@
         <h1>Задание 1. Средства связи предложений в тексте</h1>
 
         <div class="task-box">
-            <h3 class="h3-flat">📌 Формулировка задания (из демоверсии ЕГЭ 2026)</h3>
+            <h3 class="h3-flat">📌 Формулировка задания (из демоверсии ЕГЭ 2026)&nbsp;</h3>
             <p class="p-bold-sm">Самостоятельно подберите определительное местоимение, которое должно стоять на месте пропуска в третьем (3) абзаце текста. Запишите это местоимение.</p>
             <p class="u-6"><em>Пушкин – явление национальное мирового масштаба. Языки, судьбы и характеры народов подобны рекам, опоясывающим планету. Пушкин мог войти в любую из этих рек, не рассыпаясь по дну мелкой галькой, а растворившись в реке, &lt;…&gt; становился вселенским потоком.</em></p>
             <p class="mt-6"><strong>Ответ:</strong> сам; весь</p>
@@ -9681,8 +10176,8 @@
 
         <div class="screenshot-box">
             <button class="screenshot-btn screenshot-btn">
-                📸 Сделать скриншот теории
-            </button>
+        📸 Сделать скриншот теории
+    </button>
             <p class="note-sm">Скриншот всей страницы с теорией (без меню) будет скачан как PNG.</p>
         </div>
 
@@ -10334,8 +10829,8 @@
 
         <div class="screenshot-box">
             <button class="screenshot-btn screenshot-btn">
-                📸 Сделать скриншот теории
-            </button>
+        📸 Сделать скриншот теории
+    </button>
             <p class="note-sm">Скриншот всей страницы с теорией (без меню) будет скачан как PNG.</p>
         </div>
 
@@ -10851,8 +11346,8 @@
 
         <div class="screenshot-box">
             <button class="screenshot-btn screenshot-btn">
-                📸 Сделать скриншот теории
-            </button>
+        📸 Сделать скриншот теории
+    </button>
             <p class="note-sm">Скриншот всей страницы с теорией (без меню) будет скачан как PNG.</p>
         </div>
 
@@ -11723,8 +12218,8 @@
 
         <div class="screenshot-box">
             <button class="screenshot-btn screenshot-btn">
-                📸 Сделать скриншот теории
-            </button>
+        📸 Сделать скриншот теории
+    </button>
             <p class="note-sm">Скриншот всей страницы с теорией (без меню) будет скачан как PNG.</p>
         </div>
 
@@ -12669,8 +13164,8 @@
 
         <div class="screenshot-box">
             <button class="screenshot-btn screenshot-btn">
-                📸 Сделать скриншот теории
-            </button>
+        📸 Сделать скриншот теории
+    </button>
             <p class="note-sm">Скриншот всей страницы с теорией (без меню) будет скачан как PNG.</p>
         </div>
 
@@ -13281,8 +13776,8 @@
 
         <div class="screenshot-box">
             <button class="screenshot-btn screenshot-btn">
-                📸 Сделать скриншот теории
-            </button>
+        📸 Сделать скриншот теории
+    </button>
             <p class="note-sm">Скриншот всей страницы с теорией (без меню) будет скачан как PNG.</p>
         </div>
 
@@ -14118,8 +14613,8 @@
 
         <div class="screenshot-box">
             <button class="screenshot-btn screenshot-btn">
-                📸 Сделать скриншот теории
-            </button>
+        📸 Сделать скриншот теории
+    </button>
             <p class="note-sm">Скриншот всей страницы с теорией (без меню) будет скачан как PNG.</p>
         </div>
 
@@ -14791,8 +15286,8 @@
 
         <div class="screenshot-box">
             <button class="screenshot-btn screenshot-btn">
-                📸 Сделать скриншот теории
-            </button>
+        📸 Сделать скриншот теории
+    </button>
             <p class="note-sm">Скриншот всей страницы с теорией (без меню) будет скачан как PNG.</p>
         </div>
 
@@ -15491,8 +15986,8 @@
 
         <div class="screenshot-box">
             <button class="screenshot-btn screenshot-btn">
-                📸 Сделать скриншот теории
-            </button>
+        📸 Сделать скриншот теории
+    </button>
             <p class="note-sm">Скриншот всей страницы с теорией (без меню) будет скачан как PNG.</p>
         </div>
 
@@ -16138,8 +16633,8 @@
 
         <div class="screenshot-box">
             <button class="screenshot-btn screenshot-btn">
-                📸 Сделать скриншот теории
-            </button>
+        📸 Сделать скриншот теории
+    </button>
             <p class="note-sm">Скриншот всей страницы с теорией (без меню) будет скачан как PNG.</p>
         </div>
 
@@ -16686,8 +17181,8 @@
 
         <div class="screenshot-box">
             <button class="screenshot-btn screenshot-btn">
-                📸 Сделать скриншот теории
-            </button>
+        📸 Сделать скриншот теории
+    </button>
             <p class="note-sm">Скриншот всей страницы с теорией (без меню) будет скачан как PNG.</p>
         </div>
 
@@ -17397,8 +17892,8 @@
 
         <div class="screenshot-box">
             <button class="screenshot-btn screenshot-btn">
-                📸 Сделать скриншот теории
-            </button>
+        📸 Сделать скриншот теории
+    </button>
             <p class="note-sm">Скриншот всей страницы с теорией (без меню) будет скачан как PNG.</p>
         </div>
 
@@ -18448,8 +18943,8 @@
                 <p class="lead-orange">Примеры:</p>
                 <ul class="list-tight">
                     <li><em>Ти<strong><u>ш</u></strong>е е<strong>д</strong>е<strong><u>ш</u></strong>ь, <strong><u>д</u></strong>аль<strong><u>ш</u></strong>е бу</em><b><i><u>д</u></i></b><em>е<strong><u>ш</u></strong>ь;</em></li>
-                    <li><em><strong><u>К</u></strong>о</em><i><b><u>с</u></b></i><em>и, <strong><u>к</u></strong>о<strong><u>с</u></strong>а, по<strong><u>к</u></strong>а </em><b><i><u>р</u></i></b><i><span class="t-accent">о</span></i><u class="u-56"><b>с</b></u><i><span class="t-accent">а</span>,</i><b style=";"><u> р</u></b><i><span class="t-accent">о</span></i><u class="u-56"><b>с</b></u><i><span class="t-accent">а</span> </i><strong class="u-56"><u>д</u></strong><i><span class="t-accent">олой</span> – <span class="t-accent">и ты</span> </i><strong class="u-56"><u>д</u></strong><i><span class="t-accent">омой</span>;</i></li>
-                    <li><em><strong><u>К</u></strong>о<strong><u>л</u></strong>о<strong><u>с</u></strong> от <strong><u>к</u></strong>о<strong><u>л</u></strong>о<u><b>с</b></u>а – не <strong><u>сл</u></strong>ыхать и <strong><u>г</u></strong>о</em><b><i><u>л</u></i></b><em>о<strong><u>с</u></strong>а;</em></li>
+                    <li><em><strong><u>К</u></strong>о</em><i><b><u>с</u></b></i><em>и, <strong><u>к</u></strong>о<strong><u>с</u></strong>а, по<strong><u>к</u></strong>а </em><b><i><u>р</u></i></b><i><span class="t-accent"><span style="font-weight: 400; font-style: italic; text-decoration: none; color: rgb(30, 58, 138); background-color: rgba(0, 0, 0, 0); font-size: 17px; font-family: Inter, &quot;Segoe UI&quot;, Roboto, system-ui, -apple-system, sans-serif;">о</span></span></i><u class="u-56"><b>с</b></u><i><span class="t-accent"><span style="font-weight: 400; font-style: italic; text-decoration: none; color: rgb(30, 58, 138); background-color: rgba(0, 0, 0, 0); font-size: 17px; font-family: Inter, &quot;Segoe UI&quot;, Roboto, system-ui, -apple-system, sans-serif;">а</span></span>,</i><b style=";"><u> р</u></b><i><span class="t-accent"><span style="font-weight: 400; font-style: italic; text-decoration: none; color: rgb(30, 58, 138); background-color: rgba(0, 0, 0, 0); font-size: 17px; font-family: Inter, &quot;Segoe UI&quot;, Roboto, system-ui, -apple-system, sans-serif;">о</span></span></i><u class="u-56"><b>с</b></u><i><span class="t-accent"><span style="font-weight: 400; font-style: italic; text-decoration: none; color: rgb(30, 58, 138); background-color: rgba(0, 0, 0, 0); font-size: 17px; font-family: Inter, &quot;Segoe UI&quot;, Roboto, system-ui, -apple-system, sans-serif;">а</span></span> </i><strong class="u-56"><u>д</u></strong><i><span class="t-accent"><span style="font-weight: 400; font-style: italic; text-decoration: none; color: rgb(30, 58, 138); background-color: rgba(0, 0, 0, 0); font-size: 17px; font-family: Inter, &quot;Segoe UI&quot;, Roboto, system-ui, -apple-system, sans-serif;">олой</span></span> – <span class="t-accent"><span style="font-weight: 400; font-style: italic; text-decoration: none; color: rgb(30, 58, 138); background-color: rgba(0, 0, 0, 0); font-size: 17px; font-family: Inter, &quot;Segoe UI&quot;, Roboto, system-ui, -apple-system, sans-serif;">и</span> <span style="font-weight: 400; font-style: italic; text-decoration: none; color: rgb(30, 58, 138); background-color: rgba(0, 0, 0, 0); font-size: 17px; font-family: Inter, &quot;Segoe UI&quot;, Roboto, system-ui, -apple-system, sans-serif;">ты</span></span> </i><strong class="u-56"><u>д</u></strong><i><span class="t-accent"><span style="font-weight: 400; font-style: italic; text-decoration: none; color: rgb(30, 58, 138); background-color: rgba(0, 0, 0, 0); font-size: 17px; font-family: Inter, &quot;Segoe UI&quot;, Roboto, system-ui, -apple-system, sans-serif;">омой</span></span>;</i></li>
+                    <li><em><strong><u>К</u></strong>о<strong><u>л</u></strong>о<strong><u>с</u></strong> от <strong><u>к</u></strong>о<strong><u>л</u></strong>о<u><b><span style="font-weight: 700; font-style: italic; text-decoration: underline; color: rgb(2, 6, 23); background-color: rgba(0, 0, 0, 0); font-size: 17px; font-family: Inter, &quot;Segoe UI&quot;, Roboto, system-ui, -apple-system, sans-serif;">с</span></b></u>а – не <strong><u>сл</u></strong>ыхать и <strong><u>г</u></strong>о</em><b><i><u>л</u></i></b><em>о<strong><u>с</u></strong>а;</em></li>
                     <li><em><strong><u>Ш</u></strong>и<strong><u>п</u></strong>е<strong><u>н</u></strong>ье <strong><u>п</u></strong>е<strong><u>н</u></strong>истых бокалов / И <strong><u>п</u></strong>у<strong><u>нш</u></strong>а <strong><u>п</u></strong>ламе</em><b><i><u>н</u></i></b><em>ь голубой</em> (А. Пушкин);</li>
                     <li><em><strong><u>Ч</u></strong>уть слы<strong><u>ш</u></strong>но, бес</em><b><i><u>ш</u></i></b><em>умно / <strong><u>Ш</u></strong>ур</em><b><i><u>ш</u></i></b><em>ат камы</em><b><u>ш</u></b><em>и</em> (К. Бальмонт).</li>
                 </ul>
@@ -18897,8 +19392,8 @@
 
         <div class="screenshot-box">
             <button class="screenshot-btn screenshot-btn">
-                📸 Сделать скриншот теории
-            </button>
+        📸 Сделать скриншот теории
+    </button>
             <p class="note-sm">Скриншот всей страницы с теорией (без меню) будет скачан как PNG.</p>
         </div>
 
@@ -20361,8 +20856,8 @@ _____________________________________<br>
 
         <div class="screenshot-box">
             <button class="screenshot-btn screenshot-btn">
-                📸 Сделать скриншот теории
-            </button>
+        📸 Сделать скриншот теории
+    </button>
             <p class="note-sm">Скриншот всей страницы с теорией (без меню) будет скачан как PNG.</p>
         </div>
 
@@ -20537,8 +21032,8 @@ _____________________________________<br>
 
         <div class="screenshot-box">
             <button class="screenshot-btn screenshot-btn">
-                📸 Сделать скриншот теории
-            </button>
+        📸 Сделать скриншот теории
+    </button>
             <p class="note-sm">Скриншот всей страницы с теорией (без меню) будет скачан как PNG.</p>
         </div>
 
@@ -22354,8 +22849,8 @@ _____________________________________</p>
 
         <div class="screenshot-box">
             <button class="screenshot-btn screenshot-btn">
-                📸 Сделать скриншот теории
-            </button>
+        📸 Сделать скриншот теории
+    </button>
             <p class="note-sm">Скриншот всей страницы с теорией (без меню) будет скачан как PNG.</p>
         </div>
 
@@ -22659,8 +23154,8 @@ _____________________________________</p>
 
         <div class="screenshot-box">
             <button class="screenshot-btn screenshot-btn">
-                📸 Сделать скриншот теории
-            </button>
+        📸 Сделать скриншот теории
+    </button>
             <p class="note-sm">Скриншот всей страницы с теорией (без меню) будет скачан как PNG.</p>
         </div>
 
@@ -24195,8 +24690,8 @@ _____________________________________</p>
 
         <div class="screenshot-box">
             <button class="screenshot-btn screenshot-btn">
-                📸 Сделать скриншот теории
-            </button>
+        📸 Сделать скриншот теории
+    </button>
             <p class="note-sm">Скриншот всей страницы с теорией (без меню) будет скачан как PNG.</p>
         </div>
 
@@ -24492,8 +24987,8 @@ _____________________________________</p>
 
         <div class="screenshot-box">
             <button class="screenshot-btn screenshot-btn">
-                📸 Сделать скриншот теории
-            </button>
+        📸 Сделать скриншот теории
+    </button>
             <p class="note-sm">Скриншот всей страницы с теорией (без меню) будет скачан как PNG.</p>
         </div>
 
@@ -26055,8 +26550,8 @@ _____________________________________</p>
 
         <div class="screenshot-box">
             <button class="screenshot-btn screenshot-btn">
-                📸 Сделать скриншот теории
-            </button>
+        📸 Сделать скриншот теории
+    </button>
             <p class="note-sm">Скриншот всей страницы с теорией (без меню) будет скачан как PNG.</p>
         </div>
 
@@ -26375,8 +26870,8 @@ _____________________________________</p>
 
         <div class="screenshot-box">
             <button class="screenshot-btn screenshot-btn">
-                📸 Сделать скриншот теории
-            </button>
+        📸 Сделать скриншот теории
+    </button>
             <p class="note-sm">Скриншот всей страницы с теорией (без меню) будет скачан как PNG.</p>
         </div>
 
@@ -26805,8 +27300,8 @@ _____________________________________</p>
 
         <div class="screenshot-box">
             <button class="screenshot-btn screenshot-btn">
-                📸 Сделать скриншот теории
-            </button>
+        📸 Сделать скриншот теории
+    </button>
             <p class="note-sm">Скриншот всей страницы с теорией (без меню) будет скачан как PNG.</p>
         </div>
 
@@ -27014,8 +27509,8 @@ _____________________________________</p>
 
         <div class="screenshot-box">
             <button class="screenshot-btn screenshot-btn">
-                📸 Сделать скриншот теории
-            </button>
+        📸 Сделать скриншот теории
+    </button>
             <p class="note-sm">Скриншот всей страницы с теорией (без меню) будет скачан как PNG.</p>
         </div>
 
@@ -27075,6 +27570,7 @@ _____________________________________</p>
             // 2. Перестраиваем боковое меню в компактный сгруппированный вид + поиск
             const searchWrap = document.createElement('div');
             searchWrap.className = 'sidebar-search-wrap';
+            searchWrap.setAttribute('data-runtime-ui', '');
             searchWrap.innerHTML = '<input type="text" class="sidebar-search-input" id="sidebarSearchInput" placeholder="🔍 Быстрый фильтр тем (1–27)...">';
             sidebarEl.insertBefore(searchWrap, menuListEl);
 
@@ -27173,11 +27669,13 @@ _____________________________________</p>
             // 4. Создаём верхнюю панель урока (кнопка скрытия меню + хлебные крошки + вкладки Теория/Практика)
             const toolbarLeft = document.createElement('div');
             toolbarLeft.className = 'toolbar-left';
+            toolbarLeft.setAttribute('data-runtime-ui', '');
             toolbarLeft.innerHTML = `
                 <button type="button" class="sidebar-toggle-btn" id="desktopSidebarToggle" title="Развернуть конспект на весь экран">◀ Скрыть меню</button>
                 <div class="breadcrumbs" id="breadcrumbsBar"></div>`;
             const modeTabsEl = document.createElement('div');
             modeTabsEl.className = 'mode-tabs';
+            modeTabsEl.setAttribute('data-runtime-ui', '');
             modeTabsEl.id = 'modeTabsBar';
             pageHeaderEl.appendChild(toolbarLeft);
             pageHeaderEl.appendChild(modeTabsEl);
@@ -27202,6 +27700,7 @@ _____________________________________</p>
                     if (h2List.length >= 2) {
                         const toc = document.createElement('div');
                         toc.className = 'topic-toc';
+                        toc.setAttribute('data-runtime-ui', '');
                         toc.innerHTML = '<span class="topic-toc-label">Оглавление:</span>';
                         h2List.forEach((h2, idx) => {
                             if (!h2.id) h2.id = `${bid}-sec-${idx + 1}`;
@@ -27227,6 +27726,7 @@ _____________________________________</p>
                     if (cards.length > 0) {
                         const navBar = document.createElement('div');
                         navBar.className = 'practice-nav-bar';
+                        navBar.setAttribute('data-runtime-ui', '');
                         const numsWrap = document.createElement('div');
                         numsWrap.className = 'practice-nav-nums';
                         numsWrap.innerHTML = '<span class="topic-toc-label">Задачи:</span>';
@@ -27268,6 +27768,7 @@ _____________________________________</p>
                     container.querySelectorAll('.practice-options').forEach(optList => {
                         const helper = document.createElement('div');
                         helper.className = 'options-helper-bar';
+                        helper.setAttribute('data-runtime-ui', '');
                         helper.innerHTML = `
                             <span>💡 Нажмите на вариант: 1 клик — вычеркнуть неверный, 2 клика — отметить верный</span>
                             <button type="button" class="options-reset-btn">Сбросить отметки</button>`;
@@ -27297,6 +27798,7 @@ _____________________________________</p>
                 // 5в. Нижняя панель кнопок навигации в конце каждой страницы
                 const footerNav = document.createElement('div');
                 footerNav.className = 'lesson-footer-nav';
+                footerNav.setAttribute('data-runtime-ui', '');
                 const matchNum = bid.match(/^zadanie(\d+)(-practice)?$/);
                 if (matchNum) {
                     const n = parseInt(matchNum[1], 10);
@@ -27380,6 +27882,7 @@ _____________________________________</p>
             const floatBtn = document.createElement('button');
             floatBtn.type = 'button';
             floatBtn.className = 'scroll-top-float';
+            floatBtn.setAttribute('data-runtime-ui', '');
             floatBtn.title = 'Наверх страницы';
             floatBtn.innerHTML = '↑';
             document.body.appendChild(floatBtn);
@@ -27508,4 +28011,29 @@ _____________________________________</p>
     apply(current());
 })();
 </script>
+<script data-ege-editor-installed="">
+/* ===== Редактор сайта: пароль проверяется по SHA-256 ===== */
+(function(){'use strict';
+var SALT='ege-edit-v1:', HASH='1858cc86134f19e53d11e1d9489f49d339095246d039dde0bc0b1781d1cce85b';
+var TARGET='.theory-content:not(#main) .container', editing=false, dirty=false, panel=null, login=null, range=null, copiedFormat=null, fails=0, lockedUntil=0;
+function sha256(msg){var primes=[],n=2,i,j;while(primes.length<64){for(j=2;j*j<=n;j++)if(n%j===0)break;if(j*j>n)primes.push(n);n++;}var K=primes.map(p=>(Math.pow(p,1/3)%1)*4294967296|0),H=primes.slice(0,8).map(p=>(Math.sqrt(p)%1)*4294967296|0),b=Array.from(new TextEncoder().encode(msg)),bits=b.length*8;b.push(128);while(b.length%64!==56)b.push(0);for(i=7;i>=0;i--)b.push(i>3?0:(bits>>>(i*8))&255);function r(k,x){return(x>>>k)|(x<<(32-k));}var W=new Array(64);for(var o=0;o<b.length;o+=64){for(i=0;i<16;i++)W[i]=(b[o+4*i]<<24)|(b[o+4*i+1]<<16)|(b[o+4*i+2]<<8)|b[o+4*i+3];for(i=16;i<64;i++){var x=r(7,W[i-15])^r(18,W[i-15])^(W[i-15]>>>3),y=r(17,W[i-2])^r(19,W[i-2])^(W[i-2]>>>10);W[i]=(W[i-16]+x+W[i-7]+y)|0;}var a=H[0],c=H[2],bb=H[1],d=H[3],e=H[4],f=H[5],g=H[6],h=H[7];for(i=0;i<64;i++){var t=(h+(r(6,e)^r(11,e)^r(25,e))+((e&f)^(~e&g))+K[i]+W[i])|0,u=((r(2,a)^r(13,a)^r(22,a))+((a&bb)^(a&c)^(bb&c)))|0;h=g;g=f;f=e;e=(d+t)|0;d=c;c=bb;bb=a;a=(t+u)|0;}H=[H[0]+a,H[1]+bb,H[2]+c,H[3]+d,H[4]+e,H[5]+f,H[6]+g,H[7]+h].map(x=>x|0);}return H.map(x=>('00000000'+(x>>>0).toString(16)).slice(-8)).join('');}
+function el(tag,cls,html){var x=document.createElement(tag);if(cls)x.className=cls;if(html)x.innerHTML=html;x.setAttribute('data-editor-ui','');return x;}
+function toast(t){var x=el('div','ee-toast',t);document.body.appendChild(x);setTimeout(()=>x.remove(),3200);}
+function mark(){dirty=true;var b=panel&&panel.querySelector('[data-a=save]');if(b)b.textContent='💾 Сохранить файл •';}
+var lock=el('button','ee-lock','🔒');lock.type='button';lock.title='Открыть редактор (Ctrl+Shift+E)';(document.getElementById('sidebarEditorFooter')||document.querySelector('.sidebar')||document.body).appendChild(lock);lock.onclick=openLogin;
+function openLogin(){if(panel||login)return;login=el('div','ee-overlay','<form class="ee-login" autocomplete="off"><h3>🔒 Вход в редактор</h3><input type="password" placeholder="Пароль" autocomplete="new-password"><div class="ee-error" role="alert"></div><div class="ee-actions"><button type="button" data-cancel>Отмена</button><button class="ee-primary" type="submit">Войти</button></div></form>');document.body.appendChild(login);var f=login.querySelector('form'),i=login.querySelector('input'),err=login.querySelector('.ee-error');i.focus();login.addEventListener('mousedown',e=>{if(e.target===login)closeLogin();});login.querySelector('[data-cancel]').onclick=closeLogin;f.onsubmit=e=>{e.preventDefault();var wait=Math.ceil((lockedUntil-Date.now())/1000);if(wait>0){err.textContent='Подождите '+wait+' с.';return;}if(sha256(SALT+i.value.trim())===HASH){fails=0;closeLogin();openPanel();}else{fails++;if(fails>=5){fails=0;lockedUntil=Date.now()+60000;err.textContent='Слишком много попыток. Подождите минуту.';}else err.textContent='Неверный пароль';i.value='';i.focus();}};}
+function closeLogin(){if(login){login.remove();login=null;}}
+function openPanel(){lock.style.display='none';panel=el('div','ee-panel','<div class="ee-row"><strong>✏️ Редактор сайта</strong><label><input type="checkbox" data-a="toggle" checked> Править текст на странице</label><span class="ee-spacer"></span><button class="ee-primary" data-a="save">💾 Сохранить файл</button><button data-a="exit">🔒 Выйти</button><button data-a="min">▾</button></div><div class="ee-row ee-tools"><button data-c="undo">↶ Отменить</button><button data-c="redo">↷ Повторить</button><button data-c="bold"><b>Ж</b></button><button data-c="italic"><i>К</i></button><button data-c="underline"><u>Ч</u></button><button data-a="copyFormat" title="Скопировать оформление выделенного текста">🖌 Копировать формат</button><select data-a="block"><option value="">Формат…</option><option value="p">Абзац</option><option value="h2">Заголовок 2</option><option value="h3">Заголовок 3</option><option value="h4">Заголовок 4</option></select><button data-c="insertUnorderedList">• Список</button><button data-c="insertOrderedList">1. Список</button><button data-a="link">🔗 Ссылка</button><button data-a="add">＋ Абзац</button><button data-a="addRow" title="Добавить строку в текущую таблицу">＋ Строка таблицы</button><button data-a="del">🗑 Удалить абзац</button></div><div class="ee-hint">Ctrl+S — сохранить HTML-файл. «Копировать формат»: выделите образец, нажмите кнопку, выделите текст назначения и нажмите «Применить формат». После скачивания замените им исходный файл сайта.</div>');document.body.appendChild(panel);document.body.classList.add('ee-has-panel');panel.addEventListener('mousedown',e=>{if(!e.target.closest('input,select'))e.preventDefault();});panel.addEventListener('click',panelClick);panel.querySelector('[data-a=toggle]').onchange=e=>setEditing(e.target.checked);panel.querySelector('[data-a=block]').onchange=e=>{if(e.target.value&&need()){restore();document.execCommand('formatBlock',false,'<'+e.target.value+'>');mark();}e.target.value='';};setEditing(true);}
+function panelClick(e){var b=e.target.closest('button');if(!b)return;var c=b.dataset.c,a=b.dataset.a;if(c){if(need()){restore();document.execCommand(c,false,null);mark();}return;}if(a==='save')save();if(a==='exit')exit();if(a==='min'){panel.classList.toggle('ee-min');b.textContent=panel.classList.contains('ee-min')?'▴':'▾';}if(a==='link'&&need()){var u=prompt('Адрес ссылки (https://…)');if(u){restore();document.execCommand('createLink',false,u);mark();}}if(a==='add'&&need()){restore();document.execCommand('insertParagraph');mark();}if(a==='addRow'&&need()){restore();var cell=current()&&current().closest('td,th'),row=cell&&cell.closest('tr'),table=row&&row.closest('table');if(!table){toast('Поставьте курсор в ячейку таблицы');return;}var nr=table.insertRow(row.rowIndex+1);Array.from(row.cells).forEach(function(c){var nc=nr.insertCell();nc.className=c.className;nc.style.cssText=c.style.cssText;nc.innerHTML='&nbsp;';});var first=nr.cells[0];if(first){var r=document.createRange();r.selectNodeContents(first);r.collapse(true);var sel=getSelection();sel.removeAllRanges();sel.addRange(r);range=r.cloneRange();}mark();}if(a==='copyFormat'&&need()){restore();var sel=getSelection();if(!sel.rangeCount||sel.isCollapsed){toast('Сначала выделите слово или фрагмент с нужным оформлением');return;}var node=sel.anchorNode,nodeEl=node.nodeType===1?node:node.parentElement;if(!inside(nodeEl)){toast('Выделите текст внутри редактируемого блока');return;}var cs=getComputedStyle(nodeEl);copiedFormat={fontWeight:cs.fontWeight,fontStyle:cs.fontStyle,textDecoration:cs.textDecoration,color:cs.color,backgroundColor:cs.backgroundColor,fontSize:cs.fontSize,fontFamily:cs.fontFamily};toast('Формат скопирован. Выделите текст для применения и нажмите «Применить формат»');var applyBtn=panel.querySelector('[data-a=applyFormat]');if(!applyBtn){applyBtn=el('button','','Применить формат');applyBtn.dataset.a='applyFormat';panel.querySelector('.ee-tools').appendChild(applyBtn);}}if(a==='applyFormat'&&need()){if(!copiedFormat){toast('Сначала скопируйте формат');return;}restore();var ss=getSelection();if(!ss.rangeCount||ss.isCollapsed){toast('Выделите текст, к которому нужно применить формат');return;}var span=document.createElement('span');Object.assign(span.style,copiedFormat);try{ss.getRangeAt(0).surroundContents(span);}catch(err){var frag=ss.getRangeAt(0).extractContents();span.appendChild(frag);ss.getRangeAt(0).insertNode(span);}range=null;mark();}if(a==='del'&&need()){var n=current()&&current().closest('p,h2,h3,h4,li');if(n&&confirm('Удалить этот абзац или пункт?')){n.remove();range=null;mark();}}}
+function setEditing(on){editing=on;document.body.classList.toggle('ee-editing',on);document.querySelectorAll(TARGET).forEach(c=>{if(on){c.contentEditable='true';c.spellcheck=false;c.querySelectorAll('.topic-toc,.practice-nav-bar,.options-helper-bar,.lesson-footer-nav,.screenshot-box').forEach(n=>n.contentEditable='false');}else{c.removeAttribute('contenteditable');c.removeAttribute('spellcheck');c.querySelectorAll('[contenteditable]').forEach(n=>n.removeAttribute('contenteditable'));}});if(!on)range=null;}
+function exit(){if(dirty&&!confirm('Есть несохранённые изменения. Выйти без сохранения?'))return;setEditing(false);if(dirty)location.reload();panel.remove();panel=null;document.body.classList.remove('ee-has-panel');lock.style.display='';dirty=false;}
+function inside(n){var x=n&&(n.nodeType===1?n:n.parentElement);return !!(x&&x.closest(TARGET)&&x.closest('[contenteditable=true]'));}
+document.addEventListener('selectionchange',()=>{if(!editing)return;var s=getSelection();if(s.rangeCount&&inside(s.anchorNode))range=s.getRangeAt(0).cloneRange();});function restore(){if(!range)return;var s=getSelection();s.removeAllRanges();s.addRange(range);}function current(){return range&&(range.startContainer.nodeType===1?range.startContainer:range.startContainer.parentElement);}function need(){if(!editing){toast('Включите режим редактирования');return false;}if(!range){toast('Сначала поставьте курсор в текст');return false;}return true;}
+document.addEventListener('input',e=>{if(editing&&inside(e.target))mark();});document.addEventListener('paste',e=>{if(!editing||!inside(e.target))return;e.preventDefault();document.execCommand('insertText',false,(e.clipboardData||window.clipboardData).getData('text/plain'));});document.addEventListener('click',e=>{if(!editing)return;var t=e.target;if(t.closest&&t.closest('[contenteditable=true]')&&!t.closest('[contenteditable=false]')){if(t.closest('a,summary,.practice-options li')){e.preventDefault();e.stopPropagation();}}},true);
+function save(){var root=document.documentElement.cloneNode(true);root.querySelectorAll('[data-editor-ui],[data-runtime-ui],.sidebar-search-wrap,.toolbar-left,.mode-tabs,.topic-toc,.practice-nav-bar,.options-helper-bar,.lesson-footer-nav,.scroll-top-float').forEach(n=>n.remove());root.querySelectorAll('[contenteditable],[spellcheck]').forEach(n=>{n.removeAttribute('contenteditable');n.removeAttribute('spellcheck');});root.querySelectorAll('body').forEach(n=>n.classList.remove('ee-editing','ee-has-panel','is-editing','has-editor-panel'));root.querySelectorAll('.theory-content:not(#main)').forEach(n=>n.classList.remove('active'));var main=root.querySelector('#main');if(main)main.classList.add('active');root.removeAttribute('data-theme');root.querySelectorAll('details[open]').forEach(n=>n.removeAttribute('open'));var html='<!DOCTYPE html>\n'+root.outerHTML+'\n';var name=(location.pathname.split('/').pop()||'index.html').replace(/[?#].*$/,'');if(!/\.html?$/i.test(name))name='index.html';var blob=new Blob([html],{type:'text/html;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},1000);dirty=false;var b=panel&&panel.querySelector('[data-a=save]');if(b)b.textContent='💾 Сохранить файл';toast('Файл «'+name+'» скачан. Замените им исходный HTML-файл сайта.');}
+document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.shiftKey&&e.code==='KeyE'){e.preventDefault();if(!panel)openLogin();}if(e.key==='Escape')closeLogin();if(editing&&(e.ctrlKey||e.metaKey)&&e.code==='KeyS'){e.preventDefault();save();}});window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
+})();
+</script>
+
+
 </body></html>
